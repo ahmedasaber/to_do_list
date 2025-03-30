@@ -2,36 +2,57 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:to_do_list/custom_shape.dart';
-import 'package:to_do_list/db.dart';
-import 'package:to_do_list/home_page.dart';
-import 'package:to_do_list/model.dart';
+import 'package:intl/intl.dart';
+import 'package:to_do_list/model/check_list_model.dart';
+import 'package:to_do_list/model/content_model.dart';
+import 'package:to_do_list/viewmodel/notes_viewmodel.dart';
+import 'home_page.dart';
 
-class AddNote extends StatefulWidget {
-  const AddNote({super.key});
+class EditNote extends StatefulWidget {
+  final int id;
+  final String title;
+  final Content content;
+  final String createAt;
+
+  const EditNote({super.key, required this.title, required this.content, required this.id, required this.createAt});
 
   @override
-  State<AddNote> createState() => _AddNoteState();
+  State<EditNote> createState() => _TaskState();
 }
 
-class _AddNoteState extends State<AddNote> {
+class _TaskState extends State<EditNote> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
   bool isCheckList = false;
   bool checkBox = false;
+  List items = [];
 
-  List<Map<String,dynamic>> fields = List.empty(growable: true);
+  List<dynamic> fields = List.empty(growable: true);
 
   Map<String,dynamic> contentType = {};
 
   NoteProvider  noteProvider = NoteProvider();
+
+  @override
+  void initState() {
+    _titleController.text = widget.title;
+
+    if(widget.content.type == 'checklist'){
+        isCheckList = true;
+        fields = widget.content.note;
+        print('00000000000$fields');
+    }else{
+      _contentController.text = widget.content.note;
+    }
+    super.initState();
+  }
   @override
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,18 +73,19 @@ class _AddNoteState extends State<AddNote> {
         ),
         actions: [
           IconButton(
-            onPressed: (){
-              if(isCheckList){
-                contentType = {'type': 'checklist', 'content': fields};
-                String content = jsonEncode(contentType);
-                noteProvider.insertNote(title: _titleController.text, content: content);
-              }else{
-                contentType = {'type': 'text', 'content': _contentController.text};
-                String content = jsonEncode(contentType);
-                noteProvider.insertNote(title: _titleController.text, content: content);
-              }
-              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => HomePage()), (route) => false,);
-            }, icon: Icon(CupertinoIcons.checkmark)
+              onPressed: (){
+                if(isCheckList){
+                  contentType = {'type': 'checklist', 'content': fields};
+                  print(contentType);
+                  String content = jsonEncode(contentType);
+                  noteProvider.updateNote(title: _titleController.text, content: content, id: widget.id);
+                }else{
+                  contentType = {'type': 'text', 'content': _contentController.text};
+                  String content = jsonEncode(contentType);
+                  noteProvider.updateNote(id:widget.id, title: _titleController.text, content: content);
+                }
+                Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => HomePage()), (route) => false,);
+              }, icon: Icon(CupertinoIcons.checkmark)
           )
         ],
       ),
@@ -99,38 +121,38 @@ class _AddNoteState extends State<AddNote> {
                             visualDensity: VisualDensity.compact,
                           ),
                           Checkbox(
-                            side: BorderSide(color: Colors.black45),
-                            shape:RoundedRectangleBorder(
+                            side:BorderSide(color: Colors.black45),
+                            shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(5)
                             ),
                             onChanged: (isChanged){
                               setState(() {
-                                fields[i]['checked'] = isChanged!;
+                                fields[i].checked = isChanged!;
                               });
                             },
-                            value: fields[i]['checked'],
+                            value: fields[i].checked,
                           ),
                           Expanded(
                             child: TextField(
+                              controller: TextEditingController(text: fields[i].task),
                               maxLines: null,
                               style: TextStyle(fontSize: 14),
                               keyboardType: TextInputType.multiline,
                               decoration: InputDecoration(
-                                border: InputBorder.none
+                                  border: InputBorder.none
                               ),
-                              onChanged: (task){
-                                fields[i]['task'] = task;
+                              onChanged: (currTask){
+                                fields[i].task = currTask;
                               },
                             ),
                           ),
                           IconButton(
-                            visualDensity: VisualDensity.compact,
-                            onPressed: (){
-                              setState(() {
-                                fields.removeAt(i);
-                                print(fields);
-                              });
-                            }, icon: Icon(CupertinoIcons.xmark)
+                              onPressed: (){
+                                setState(() {
+                                  fields.removeAt(i);
+                                  print(fields);
+                                });
+                              }, icon: Icon(CupertinoIcons.xmark)
                           ),
                         ],
                       );
@@ -139,7 +161,7 @@ class _AddNoteState extends State<AddNote> {
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        fields.add({'task': '', 'checked': false});
+                        fields.add(CheckListItems(task: '', checked: false));
                         print(fields);
                         print(fields.length);
                       });
@@ -178,19 +200,37 @@ class _AddNoteState extends State<AddNote> {
       bottomNavigationBar: BottomAppBar(
         height: 60,
         color: Colors.white,
-        shape: CircularNotchedRectangle(),
+        padding: EdgeInsets.zero,
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(icon: Icon(Icons.add_box_outlined), onPressed: () {
-              setState(() {
-                isCheckList =true;
-              });
+              if(!isCheckList) {
+                if (_contentController.text.isNotEmpty) {
+                  List noteTxt = _contentController.text.split('\n');
+                  for (var note in noteTxt) {
+                    fields.add(CheckListItems(task: note, checked: false));
+                  }
+                  setState(() {
+                    isCheckList = true;
+                  });
+                }
+              }
+
             }),
-            SizedBox(width: 10), // Space for FAB
-            IconButton(icon: Icon(Icons.color_lens_outlined), onPressed: () {}),
-            SizedBox(width: 10), // Space for FAB
+            IconButton(icon: Icon(Icons.color_lens_outlined), onPressed: () {}), // Space for FAB
             IconButton(icon: Icon(Icons.format_color_text), onPressed: () {}),
+            Expanded(
+              child: Text(
+                'Created ${DateFormat('MMM dd, yyy').format(DateTime.parse(widget.createAt))}',
+                style: TextStyle(
+                  fontSize: 12
+                ),
+              )
+            ),
+            IconButton(icon: Icon(Icons.delete), onPressed: () {
+              noteProvider.deleteNote(id: widget.id);
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => HomePage()), (route) => false,);
+            }),
           ],
         ),
       ),

@@ -1,11 +1,8 @@
-import 'dart:convert';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../viewmodel/notes_viewmodel.dart';
 import 'custom_shape.dart';
 import 'edit_note.dart';
-import 'model.dart';
 import 'add_note.dart';
 
 class HomePage extends StatefulWidget {
@@ -17,8 +14,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<String> colors = ['fff9cb', 'e3e0ff','FFCDD2', 'e0f2ff'];
-
-  Map<String, dynamic> content = {};
 
   @override
   void initState() {
@@ -61,16 +56,14 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Container(
               padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
-              child: Consumer<NoteProvider>(
-                builder: (context, noteProvider, child){
+              child: Selector<NoteProvider, List>(
+                selector: (context, notesProvider) => notesProvider.notes,
+                builder: (context, notes, child){
                   return ListView.builder(
                     physics: BouncingScrollPhysics(),
-                    itemCount: noteProvider.notes.length,
+                    itemCount: notes.length,
                     itemBuilder: (BuildContext context, int i){
-                      content = jsonDecode(noteProvider.notes[i]['content']);
-                      print(content);
-                      print(content.runtimeType);
-                      print(content['content '].runtimeType);
+                      print(notes[i].content.note);
                       return Transform.translate(
                         offset: Offset(0, -10.0 * i),
                         child: InkWell(
@@ -78,10 +71,10 @@ class _HomePageState extends State<HomePage> {
                             Navigator.push(context,
                                 MaterialPageRoute(builder:
                                     (context)=> EditNote(
-                                      id:noteProvider.notes[i]['id'],
-                                      title: noteProvider.notes[i]['title'],
-                                      content: noteProvider.notes[i]['content'],
-                                      createAt: noteProvider.notes[i]['created_at'],
+                                      id:notes[i].id,
+                                      title: notes[i].title,
+                                      content: notes[i].content,
+                                      createAt: notes[i].createdAt,
                                     )
                                 )
                             );
@@ -100,20 +93,20 @@ class _HomePageState extends State<HomePage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '${noteProvider.notes[i]['title']}',
+                                    notes[i].title,
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black),
                                   ),
                                   SizedBox(height: 5,),
-                                  content['type'] == 'checklist'
+                                  notes[i].content.type == 'checklist'
                                     ? ListView.builder(
                                       physics: NeverScrollableScrollPhysics(),
                                       shrinkWrap: true,
                                       itemExtent: 22,
-                                      itemCount: content['content'].length > 3 ? 3 : content['content'].length,
-                                      itemBuilder: (BuildContext context, int i){
+                                      itemCount: notes[i].content.note.length > 3 ? 3 : notes[i].content.note.length,
+                                      itemBuilder: (BuildContext context, int index){
                                         return Row(
                                           children: [
                                             Transform.scale(
@@ -123,13 +116,13 @@ class _HomePageState extends State<HomePage> {
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius: BorderRadius.circular(5)
                                                 ),
-                                                value: content['content'][i]['checked'],
+                                                value: notes[i].content.note[index].checked,
                                                 onChanged: (_){}
                                               ),
                                             ),
                                             Expanded(
                                               child: Text(
-                                                "${content['content'][i]['task']}",
+                                                notes[i].content.note[index].task,
                                                 maxLines: 1,
                                                 overflow: i == 2 ? TextOverflow.fade : TextOverflow.ellipsis,
                                                 softWrap: false,
@@ -144,7 +137,7 @@ class _HomePageState extends State<HomePage> {
                                       },
                                       )
                                     : Text(
-                                      '${content['content']}',
+                                      notes[i].content.note,
                                       maxLines: 2,
                                       overflow: TextOverflow.fade,
                                       style: TextStyle(

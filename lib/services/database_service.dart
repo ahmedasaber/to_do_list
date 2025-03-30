@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:to_do_list/model/notes_model.dart';
 class SqlDatabase {
 
   static Database? _db;
@@ -29,10 +30,11 @@ class SqlDatabase {
     """);
   }
 
-  Future<List<Map>>getData(String sql) async{
+  Future<List<Notes>>getData(String sql) async{
     Database? myDb = await db;
-    List<Map> response = await myDb!.rawQuery(sql);
-    return response;
+    var response = await myDb!.rawQuery(sql);
+    List<Notes> notes = response.map((e)=>Notes.fromJson(e)).toList();
+    return notes;
   }
   Future<int> insetData(String sql) async{
     Database? myDb = await db;
