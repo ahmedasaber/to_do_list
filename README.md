@@ -1,16 +1,30 @@
 # to_do_list
 
-To Do List Flutter project.
+To-Do app Flutter project.
 
-## Getting Started
+## 🚀 Feature
 
-This project is a starting point for a Flutter application.
+- Show Notes or Tasks at home.
+- Add a new Note or Task.
+- Save Notes or Tasks locally.
+- Edit Note or Task.
 
-A few resources to get you started if this is your first Flutter project:
+## 🛠️ Technologies Used
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- MVVM Architecture Pattern
+- sqflite database
+- Custom Font (Sora)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 💻 Screens
+<table>
+  <tr>
+    <th>Home</th>
+    <th>Note</th>
+    <th>Tasks</th>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/ahmedasaber/to_do_list/blob/master/home.jpg" width="250"/></td>
+    <td><img src="https://github.com/ahmedasaber/to_do_list/blob/master/note.jpg" width="250"/></td>
+    <td><img src="https://github.com/ahmedasaber/to_do_list/blob/master/task.jpg" width="250"/></td>
+  </tr>
+</table>
