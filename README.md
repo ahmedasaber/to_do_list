@@ -25,6 +25,6 @@ To-Do app Flutter project.
   <tr>
     <td><img src="https://github.com/ahmedasaber/to_do_list/blob/master/home.jpg" width="250"/></td>
     <td><img src="https://github.com/ahmedasaber/to_do_list/blob/master/note.jpg" width="250"/></td>
-    <td><img src="https://github.com/ahmedasaber/to_do_list/blob/master/task.jpg" width="250"/></td>
+    <td><img src="https://github.com/ahmedasaber/to_do_list/blob/master/tasks.jpg" width="250"/></td>
   </tr>
 </table>
